@@ -146,18 +146,24 @@ cal_rule_all()
 	rm -f ${TMP_FILE}
 	mv ${TMP_FILE}.2 ${TMP_FILE}
 
-
 	## Print sum of active iptables rule-lines
 	NUM_IPT_RULE=$(cat ${TMP_FILE} | grep -Ev "^Chain|^\pkts|^\ pkts" | wc -l)
 	NUM_IPT_CHAIN=$(cat ${TMP_FILE} | grep "^Chain" | wc -l)
-	echo ""
-	echo "++++++++++++++++++++++++++++++++++++++++++++"
-	echo "+ Summary information of iptables firewall +"
-	echo "++++++++++++++++++++++++++++++++++++++++++++"
-	echo ""
-	echo "---| Sum of current iptables chains : ${NUM_IPT_CHAIN}   (chains)" 
-	echo "---| Sum of active iptable rules : ${NUM_IPT_RULE}    (rules)"
-	echo ""
+    
+    ## For NRPE count totals and omit output
+    if [ -n "$1" ]; then
+        NUM_IPT_TOTAL=$(($NUM_IPT_RULE + $NUM_IPT_CHAIN))
+        echo "Rules:$NUM_IPT_RULE Chains:$NUM_IPT_CHAIN Total:$NUM_IPT_TOTAL"
+    else
+	    echo ""
+	    echo "++++++++++++++++++++++++++++++++++++++++++++"
+	    echo "+ Summary information of iptables firewall +"
+	    echo "++++++++++++++++++++++++++++++++++++++++++++"
+	    echo ""
+	    echo "---| Sum of current iptables chains : ${NUM_IPT_CHAIN}   (chains)" 
+	    echo "---| Sum of active iptable rules : ${NUM_IPT_RULE}    (rules)"
+	    echo ""
+    fi
 }
 
 ## Delete file temporary ##
@@ -196,13 +202,18 @@ if [ -z ${TMP_FILE} ];then
 	TMP_FILE="/tmp/iptables-rule-count.tmp.txt"
 fi
 
-delete_tmp_file
-cal_rule_all
-cal_rule_table_filter
-cal_rule_table_nat
-cal_rule_table_mangle
-cal_rule_table_raw
-cal_rule_table_security
-delete_tmp_file
 
+delete_tmp_file
+## For NRPE only count totals and omit all other output
+if [ "$1" = "nrpe" ]; then
+    cal_rule_all nrpe
+else
+    cal_rule_all
+    cal_rule_table_filter
+    cal_rule_table_nat
+    cal_rule_table_mangle
+    cal_rule_table_raw
+    cal_rule_table_security
+fi
+    delete_tmp_file
 exit 0
