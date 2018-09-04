@@ -13,7 +13,12 @@ TMP_FILE="/tmp/iptables-rule-count.tmp.txt"
 
 
 
-
+if [ "$2" = "ipv6" ]; then
+	BINARY=ip6tables
+	TMP_FILE="/tmp/ip6tables-rule-count.tmp.txt"
+else
+	BINARY=iptables
+fi
 
 
 
@@ -28,14 +33,14 @@ cal_rule_table_filter()
 {
 	echo ""
 	echo "+++++++++++++++++++++++++++++++++++++++"
-	echo "+ Table 'filter' of iptables firewall +"
+	echo "+ Table 'filter' of $BINARY firewall +"
 	echo "+++++++++++++++++++++++++++++++++++++++"
 	echo ""
-	iptables -nvL -t filter | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.filter-chains
+	$BINARY -nvL -t filter | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.filter-chains
 	SUM_RULE_FILTER=0
 	while read CHAIN
 	do
-		NUM_IPT_FILTER_CHAIN=$(iptables -nvL ${CHAIN} -t filter | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
+		NUM_IPT_FILTER_CHAIN=$($BINARY -nvL ${CHAIN} -t filter | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
 		echo "-- Chain ${CHAIN} : ${NUM_IPT_FILTER_CHAIN}    (rules)"
 		SUM_RULE_FILTER=$((SUM_RULE_FILTER+${NUM_IPT_FILTER_CHAIN}))
 	done < ${TMP_FILE}.filter-chains
@@ -49,14 +54,14 @@ cal_rule_table_nat()
 {
 	echo ""
 	echo "++++++++++++++++++++++++++++++++++++"
-	echo "+ Table 'nat' of iptables firewall +"
+	echo "+ Table 'nat' of $BINARY firewall +"
 	echo "++++++++++++++++++++++++++++++++++++"
 	echo ""
-	iptables -nvL -t nat | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.nat-chains
+	$BINARY -nvL -t nat | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.nat-chains
 	SUM_RULE_NAT=0
 	while read CHAIN
 	do
-		NUM_IPT_NAT_CHAIN=$(iptables -nvL ${CHAIN} -t nat | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
+		NUM_IPT_NAT_CHAIN=$($BINARY -nvL ${CHAIN} -t nat | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
 		echo "-- Chain ${CHAIN} : ${NUM_IPT_NAT_CHAIN}    (rules)"
 		SUM_RULE_NAT=$((SUM_RULE_NAT+${NUM_IPT_NAT_CHAIN}))
 	done < ${TMP_FILE}.nat-chains
@@ -70,15 +75,15 @@ cal_rule_table_mangle()
 {
 	echo ""
 	echo "+++++++++++++++++++++++++++++++++++++++"
-	echo "+ Table 'mangle' of iptables firewall +"
+	echo "+ Table 'mangle' of $BINARY firewall +"
 	echo "+++++++++++++++++++++++++++++++++++++++"
 	echo ""
-	iptables -nvL -t mangle | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.mangle-chains
+	$BINARY -nvL -t mangle | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.mangle-chains
 	
 	SUM_RULE_MANGLE=0
 	while read CHAIN
 	do
-		NUM_IPT_MANGLE_CHAIN=$(iptables -nvL ${CHAIN} -t mangle | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
+		NUM_IPT_MANGLE_CHAIN=$($BINARY -nvL ${CHAIN} -t mangle | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
 		echo "-- Chain ${CHAIN} : ${NUM_IPT_MANGLE_CHAIN}    (rules)"
 		SUM_RULE_MANGLE=$((SUM_RULE_MANGLE+${NUM_IPT_MANGLE_CHAIN}))
 	done < ${TMP_FILE}.mangle-chains
@@ -92,15 +97,15 @@ cal_rule_table_raw()
 {
 	echo ""
 	echo "++++++++++++++++++++++++++++++++++++"
-	echo "+ Table 'raw' of iptables firewall +"
+	echo "+ Table 'raw' of $BINARY firewall +"
 	echo "++++++++++++++++++++++++++++++++++++"
 	echo ""
-	iptables -nvL -t raw | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.raw-chains
+	$BINARY -nvL -t raw | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.raw-chains
 	
 	SUM_RULE_RAW=0
 	while read CHAIN
 	do
-		NUM_IPT_RAW_CHAIN=$(iptables -nvL ${CHAIN} -t raw | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
+		NUM_IPT_RAW_CHAIN=$($BINARY -nvL ${CHAIN} -t raw | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
 		echo "-- Chain ${CHAIN} : ${NUM_IPT_RAW_CHAIN}    (rules)"
 		SUM_RULE_RAW=$((SUM_RULE_RAW+${NUM_IPT_RAW_CHAIN}))
 	done < ${TMP_FILE}.raw-chains
@@ -114,15 +119,15 @@ cal_rule_table_security()
 {
 	echo ""
 	echo "+++++++++++++++++++++++++++++++++++++++++"
-	echo "+ Table 'security' of iptables firewall +"
+	echo "+ Table 'security' of $BINARY firewall +"
 	echo "+++++++++++++++++++++++++++++++++++++++++"
 	echo ""
-	iptables -nvL -t security | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.security-chains
+	$BINARY -nvL -t security | grep "^Chain" | awk '{print $2}' 2> /dev/null 1>> ${TMP_FILE}.security-chains
 	
 	SUM_RULE_SECURITY=0
 	while read CHAIN
 	do
-		NUM_IPT_SECURITY_CHAIN=$(iptables -nvL ${CHAIN} -t security | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
+		NUM_IPT_SECURITY_CHAIN=$($BINARY -nvL ${CHAIN} -t security | grep -Ev "^Chain|^pkts|^\ pkts" | wc -l)
 		echo "-- Chain ${CHAIN} : ${NUM_IPT_SECURITY_CHAIN}    (rules)"
 		SUM_RULE_SECURITY=$((SUM_RULE_SECURITY+${NUM_IPT_SECURITY_CHAIN}))
 	done < ${TMP_FILE}.security-chains
@@ -134,11 +139,11 @@ cal_rule_table_security()
 cal_rule_all()
 {
 
-	iptables -nvL -t filter 2> /dev/null 1>> ${TMP_FILE}
-	iptables -nvL -t nat 2> /dev/null 1>> ${TMP_FILE}
-	iptables -nvL -t mangle 2> /dev/null 1>> ${TMP_FILE}
-	iptables -nvL -t raw 2> /dev/null 1>> ${TMP_FILE}
-	iptables -nvL -t security 2> /dev/null 1>> ${TMP_FILE}
+	$BINARY -nvL -t filter 2> /dev/null 1>> ${TMP_FILE}
+	$BINARY -nvL -t nat 2> /dev/null 1>> ${TMP_FILE}
+	$BINARY -nvL -t mangle 2> /dev/null 1>> ${TMP_FILE}
+	$BINARY -nvL -t raw 2> /dev/null 1>> ${TMP_FILE}
+	$BINARY -nvL -t security 2> /dev/null 1>> ${TMP_FILE}
 
 
 	## Count active iptables rule line ##
@@ -149,7 +154,7 @@ cal_rule_all()
 	## Print sum of active iptables rule-lines
 	NUM_IPT_RULE=$(cat ${TMP_FILE} | grep -Ev "^Chain|^\pkts|^\ pkts" | wc -l)
 	NUM_IPT_CHAIN=$(cat ${TMP_FILE} | grep "^Chain" | wc -l)
-    
+
     ## For NRPE count totals and omit output
     if [ -n "$1" ]; then
         NUM_IPT_TOTAL=$(($NUM_IPT_RULE + $NUM_IPT_CHAIN))
@@ -157,11 +162,11 @@ cal_rule_all()
     else
 	    echo ""
 	    echo "++++++++++++++++++++++++++++++++++++++++++++"
-	    echo "+ Summary information of iptables firewall +"
+	    echo "+ Summary information of $BINARY firewall +"
 	    echo "++++++++++++++++++++++++++++++++++++++++++++"
 	    echo ""
-	    echo "---| Sum of current iptables chains : ${NUM_IPT_CHAIN}   (chains)" 
-	    echo "---| Sum of active iptable rules : ${NUM_IPT_RULE}    (rules)"
+	    echo "---| Sum of current $BINARY chains : ${NUM_IPT_CHAIN}   (chains)" 
+	    echo "---| Sum of active $BINARY rules : ${NUM_IPT_RULE}    (rules)"
 	    echo ""
     fi
 }
